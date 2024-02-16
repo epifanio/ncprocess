@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+
+  web:
+    build: ./ncprocess
+    ports:
+      - 8004:8000
+    command: uvicorn main:app --host 0.0.0.0 --reload
+    volumes:
+      - ./ncprocess:/usr/src/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_PASSWORD='FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
+    depends_on:
+      - redis
+    hostname: web
+
+  worker:
+    build: ./project
+    command: celery -A worker.celery worker --loglevel=info --logfile=logs/celery.log
+    volumes:
+      - ./ncprocess:/usr/src/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    # image: epinux/redis:local
+    image: redis/redis-stack:latest
+    volumes:
+      - redis-data:/data
+    volumes:
+      - ./ncprocess/redis_data/data:/data
+      - ./ncprocess/redis_data/redis-stack.conf:/opt/redis-stack/etc/redis-stack.conf
+
+  dashboard:
+    build: ./ncprocess
+    command: celery --broker=redis://redis:6379/0 flower --port=5555
+    ports:
+      - 5557:5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+      - worker
+
+volumes:
+  redis-data:

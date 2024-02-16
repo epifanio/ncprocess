@@ -1,0 +1,35 @@
+aiofiles
+celery
+fastapi
+flower
+Jinja2
+pytest
+redis>=4.2.0rc1
+requests
+uvicorn
+httpx
+# ADDEDD
+pydantic
+starlette
+bokeh
+itsdangerous
+# aioredis
+redisearch
+jsonschema
+asyncer
+fastapi-plugins
+sse-starlette
+pandas
+dask
+scipy
+bottleneck
+numbagg
+netcdf4
+nc-time-axis
+sparse
+pint
+xarray[complete]
+python-jose
+passlib
+python-multipart
+bcrypt
