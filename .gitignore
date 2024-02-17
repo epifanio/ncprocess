@@ -1,0 +1,5 @@
+ncprocess/redis_data/data
+ncprocess/redis_utility_
+ncprocess/__pycache__/
+ncprocess/api/__pycache__/
+ncprocess/models/__pycache__/
