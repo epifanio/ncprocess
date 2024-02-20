@@ -26,7 +26,8 @@ import json
 from celery import Celery
 from models.datamodel import DatasetConfig 
 # from redis_utility.redis_data import get_data, set_data 
-
+import xarray as xr
+import numpy as np
 
 celery = Celery(__name__)
 celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
@@ -56,8 +57,44 @@ def create_processing_task(processing_task):
     return True
 
 @celery.task(name="process_data")
-def process_data(DatasetConfig: DatasetConfig):
+def process_data(DatasetConfig_dict):
+    task_id = process_data.request.id
+    dcf = DatasetConfig()
+    dcf.url = DatasetConfig_dict['url']
+    dcf.variables = DatasetConfig_dict['variables']
+    
     print(str('start processing'))
+    ds = xr.open_dataset(dcf.url, decode_times=dcf.decoded_time)
+    time_coord = [i for i in ds.coords if ds.coords.dtypes[i] == np.dtype('<M8[ns]')]
+    time_dim = time_coord[0]
+
+    if len(time_coord) != 0:
+        dcf.decoded_time = True
+    else:
+        dcf.decoded_time = False
+    dcf.time_range = [DatasetConfig_dict['time_range'][0], DatasetConfig_dict['time_range'][1]]
+    dcf.is_resampled = False
+
+
+    data_selected = {}
+    if dcf.decoded_time:
+        for time_dim in time_coord:
+            data_selected[time_dim] = ds[dcf.variables].sel({time_dim: slice(dcf.time_range[0], 
+                                                                                       dcf.time_range[1])})
+        merged_dataset = xr.merge(data_selected.values())
+    else:
+        merged_dataset = ds[dcf.variables]
+    if dcf.is_resampled:
+        pass
+    if dcf.output_format == 'csv':
+        pass
+    else:
+        try:
+            merged_dataset.to_netcdf(f"{time_dim}_selected_data.nc")
+        except ValueError:
+            encoding = {i:{'_FillValue': np.nan} for i in ds[dcf.variables]}
+            merged_dataset.to_netcdf(f"{time_dim}_selected_datca.nc", encoding=encoding)
+    # redis_client.set(task_id, json_string)
     # # set the dataset status to processing itno redis
     # data = {"status": False, 'download_token': 'download_token', 'filename': 'filename'}
     # set_data(
@@ -70,5 +107,5 @@ def process_data(DatasetConfig: DatasetConfig):
     # time.sleep(100)
     print(str("completed processing"))
     # store the process resutls into redis and change the status of the task
-    print(str(DatasetConfig))
+    print(str(dcf))
     return True

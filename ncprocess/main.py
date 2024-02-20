@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import logging
 import sys
 sys.path.append('/usr/src/app')
 import uvicorn
@@ -25,7 +25,7 @@ from starlette.middleware.cors import CORSMiddleware
 from api import celery_task
 from api import auth
 from api import sse
-import logging
+from api import download
 
 logging.getLogger('passlib').setLevel(logging.ERROR)
 
@@ -51,8 +51,10 @@ def configure():
     
 def configure_routing():    
     app.mount("/static", StaticFiles(directory="static"), name="static")
+    app.mount("/download", StaticFiles(directory="download"), name="download")
     app.include_router(celery_task.router)
     app.include_router(sse.router)
+    app.include_router(download.router)
     app.include_router(auth.router)
 
 if __name__ == "__main__":

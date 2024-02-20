@@ -29,6 +29,11 @@ from fastapi import Body, FastAPI, Form, Request
 from models.datamodel import DatasetConfig
 import redis
 import json
+from itsdangerous import TimestampSigner
+import re
+import uuid
+import base64
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="/usr/src/app/templates")
@@ -41,19 +46,19 @@ def home(request: Request):
     return templates.TemplateResponse("home.html", context={"request": request})
 
 
-@router.post("/tasks", status_code=201)
-def run_task(payload = Body(...)):
-    task_type = payload["type"]
-    task = create_task.delay(int(task_type))
-    return JSONResponse({"task_id": task.id})
+# @router.post("/tasks", status_code=201)
+# def run_task(payload = Body(...)):
+#     task_type = payload["type"]
+#     task = create_task.delay(int(task_type))
+#     return JSONResponse({"task_id": task.id})
 
 
-@router.post("/tasks_model", status_code=201)
-def run_task(payload : DatasetConfig):
-    payload_dict = payload.dict()
-    # task_duration = payload_dict["duration"]
-    task = create_processing_task.delay(payload_dict)
-    return JSONResponse({"task_id": task.id})
+# @router.post("/tasks_model", status_code=201)
+# def run_task(payload : DatasetConfig):
+#     payload_dict = payload.dict()
+#     # task_duration = payload_dict["duration"]
+#     task = create_processing_task.delay(payload_dict)
+#     return JSONResponse({"task_id": task.id})
 
 
 @router.get("/celery_tasks/{task_id}")
@@ -103,7 +108,27 @@ def kill_task(task_id):
     
 
 
-@router.post("/process", status_code=201)
-def run_task(payload = Body(...)):
-    task = process_data.delay(payload)
-    return JSONResponse({"task_id": task.id})
+# @router.post("/process", status_code=201)
+# def run_task(payload = Body(...)):
+#     task = process_data.delay(payload)
+#     return JSONResponse({"task_id": task.id})
+
+
+
+@router.post("/process_data", status_code=201)
+def run_task(payload : DatasetConfig):
+    payload_dict = payload.dict()
+    # task_duration = payload_dict["duration"]
+    task = process_data.delay(payload_dict)
+    rv = base64.b64encode(uuid.uuid4().bytes).decode("utf-8")
+    unique = re.sub(
+        r"[\=\+\/]", lambda m: {"+": "-", "/": "_", "=": ""}[m.group(0)], rv
+    )
+    filename = str(unique) + f".{payload_dict['output_format']}"
+    s = TimestampSigner("secret-key")
+    download_token = s.sign(filename).decode()
+    json_string = json.dumps({"download_token": download_token, "filename": filename})
+    redis_client.set(task.id, json_string)
+    return JSONResponse({"task_id": task.id, "download_token": download_token, "filename": filename, "task_status": task.status})
+
+
