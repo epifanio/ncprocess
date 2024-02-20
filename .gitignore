@@ -3,3 +3,8 @@ ncprocess/redis_utility_
 ncprocess/__pycache__/
 ncprocess/api/__pycache__/
 ncprocess/models/__pycache__/
+*.nc
+*.rdb
+ncprocess/redis_data/data/*
+*.pyc
+*.log
