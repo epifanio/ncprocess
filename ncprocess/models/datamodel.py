@@ -44,3 +44,24 @@ class DatasetConfig(BaseModel):
                 "output_format": "nc"
             }
         }
+
+class SearchObject(BaseModel):
+    # url: AnyUrl = Field('', description="The URL for the CSW endpoint")
+    text_entry: str = Field('', description="text entry for the AnyText search")
+    keywords_list: List[str] = Field([], description="List of keywords to search for")
+    start_time: str = Field('', description="start time for the search")
+    end_time: str = Field('', description="end time for the search")
+    bbox: str = Field([], description="Map extent for the dataset")
+    
+    class Config:
+        orm_mode = True
+        schema_extra = {
+            "example": {
+                # "url": "https://nbs.csw.met.no",
+                "text_entry": "snentinel",
+                "keywords_list": ["S1A", "S1B"],
+                "start_time": "2018-07-01T00:00:00.000000000", 
+                "end_time": "2018-09-30T23:59:00.000000000",
+                "bbox": "0.0,0.0,0.0,0.0" 
+            }
+        }

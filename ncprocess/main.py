@@ -26,6 +26,7 @@ from api import celery_task
 from api import auth
 from api import sse
 from api import download
+from api import search
 
 logging.getLogger('passlib').setLevel(logging.ERROR)
 
@@ -55,6 +56,7 @@ def configure_routing():
     app.include_router(celery_task.router)
     app.include_router(sse.router)
     app.include_router(download.router)
+    app.include_router(search.router)
     app.include_router(auth.router)
 
 if __name__ == "__main__":
