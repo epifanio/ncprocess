@@ -13,12 +13,13 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - REDIS_PASSWORD='FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
+      - DOWNLOAD_DIR='/usr/src/app/ncprocess/download'
     depends_on:
       - redis
     hostname: web
 
   worker:
-    build: ./project
+    build: ./ncprocess
     command: celery -A worker.celery worker --loglevel=info --logfile=logs/celery.log
     volumes:
       - ./ncprocess:/usr/src/app
@@ -46,6 +47,7 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DOWNLOAD_DIR='/usr/src/app/ncprocess/download'
     depends_on:
       - web
       - redis
