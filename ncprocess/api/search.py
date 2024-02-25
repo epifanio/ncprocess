@@ -16,8 +16,10 @@ async def read_root(request: Request):
     # Read the HTML file and return it as a response
 #    with open("index.html", "r") as file:
 #        html_content = file.read()
-    context = {"title": "My Website", "name": "John Doe"}
-    return templates.TemplateResponse("search.html", {"request": request, **context})
+    # context = {"key": "value"}
+    # return templates.TemplateResponse("search.html", {"request": request, **context})
+    context = {"request": request}
+    return templates.TemplateResponse("search.html", context)
 
 
 @router.post("/submit-form")
