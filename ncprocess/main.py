@@ -21,12 +21,16 @@ sys.path.append('/usr/src/app')
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
 from api import celery_task
 from api import auth
 from api import sse
 from api import download
 from api import search
+
+
+
 
 logging.getLogger('passlib').setLevel(logging.ERROR)
 
@@ -35,6 +39,12 @@ app = FastAPI(
     description="Prototype API to process NetCDF Data",
     version="0.0.1",
 )
+
+favicon_path = 'favicon.ico'
+
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+    return FileResponse(favicon_path)
 
 app.add_middleware(
     CORSMiddleware,
