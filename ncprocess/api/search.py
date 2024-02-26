@@ -7,7 +7,7 @@ from models.datamodel import SearchObject
 router = APIRouter()
 templates = Jinja2Templates(directory="/usr/src/app/templates")
 
-@router.get("/results/{id}")
+
 
 
 
