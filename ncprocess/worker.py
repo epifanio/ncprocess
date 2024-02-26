@@ -21,6 +21,7 @@ import sys
 # setting path
 sys.path.append('/usr/src/app')
 
+
 import redis
 import json
 from celery import Celery
@@ -28,6 +29,9 @@ from models.datamodel import DatasetConfig
 # from redis_utility.redis_data import get_data, set_data 
 import xarray as xr
 import numpy as np
+from pathlib import Path
+
+
 
 celery = Celery(__name__)
 celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379")
@@ -58,6 +62,16 @@ def create_processing_task(processing_task):
 
 @celery.task(name="process_data")
 def process_data(DatasetConfig_dict):
+    
+    print(DatasetConfig_dict)
+    
+    # Get the value of the environment variable DOWNLOAD_DIR
+    download_dir = os.environ.get('DOWNLOAD_DIR')
+
+    # If the environment variable is not set, you might want to handle it
+    if download_dir is None:
+        raise ValueError("DOWNLOAD_DIR environment variable is not set")
+    
     task_id = process_data.request.id
     dcf = DatasetConfig()
     dcf.url = DatasetConfig_dict['url']
@@ -89,11 +103,22 @@ def process_data(DatasetConfig_dict):
     if dcf.output_format == 'csv':
         pass
     else:
+        filename = f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_data.nc"
+        # File name string
+        filename = f"{time_dim}_selected_data.nc"
+
+        # Construct the path using pathlib
+        file_path = Path(download_dir) / filename
+        print("filename : ", filename)
+        print(f"attempting to save the dataset as netcdf file... in {file_path}")
         try:
-            merged_dataset.to_netcdf(f"{time_dim}_selected_data.nc")
+            # merged_dataset.to_netcdf(f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_data.nc")
+            merged_dataset.to_netcdf(file_path)
         except ValueError:
+            print("attempting to save the dataset as netcdf file... with encoding...in {os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_datca.nc")
             encoding = {i:{'_FillValue': np.nan} for i in ds[dcf.variables]}
-            merged_dataset.to_netcdf(f"{time_dim}_selected_datca.nc", encoding=encoding)
+            # merged_dataset.to_netcdf(f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_datca.nc", encoding=encoding)
+            merged_dataset.to_netcdf(file_path, encoding=encoding)
     # redis_client.set(task_id, json_string)
     # # set the dataset status to processing itno redis
     # data = {"status": False, 'download_token': 'download_token', 'filename': 'filename'}
