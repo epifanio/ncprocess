@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
 
-  web:
+  api:
     build: ./ncprocess
     ports:
       - 8004:8000
@@ -17,7 +17,7 @@ services:
       - DOWNLOAD_DIR=/usr/src/app/data
     depends_on:
       - redis
-    hostname: web
+    hostname: api
 
   worker:
     build: ./ncprocess
@@ -30,7 +30,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - DOWNLOAD_DIR=/usr/src/app/data
     depends_on:
-      - web
+      - api
       - redis
 
   redis:
