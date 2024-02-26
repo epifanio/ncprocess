@@ -55,3 +55,40 @@
 .remove-button:hover {
     color: #333;
 }
+
+body, html {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+#toggle-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 999;
+}
+
+#sidebar {
+    height: 100%;
+    width: 300px;
+    position: fixed;
+    top: 0;
+    left: -300px; /* Initially hide the sidebar */
+    background-color: #f1f1f1;
+    overflow-x: hidden;
+    padding-top: 20px;
+    border-right: 1px solid #ccc;
+    transition: left 0.3s ease;
+}
+
+#map-container {
+    height: 100%;
+    margin-left: 0; /* Initially map takes full width */
+    transition: margin-left 0.3s ease;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
