@@ -13,13 +13,13 @@ from datetime import timedelta
 router = APIRouter()
 templates = Jinja2Templates(directory="/usr/src/app/templates")
 
-@router.get("/results/{id}")
-async def read_item(request: Request, id: str):
+@router.get("/results/{download_token}")
+async def read_item(request: Request, download_token: str):
     # TODO: check that the file  exist, if yes ..
     s = TimestampSigner("secret-key")
     # token = s.unsign(id, max_age=600, return_timestamp=True)
     try:
-        token = s.unsign(id, max_age=600, return_timestamp=True)
+        token = s.unsign(download_token, max_age=600, return_timestamp=True)
         filename = token[0].decode()
         expire_utc_time = token[1]
         # time_delta = dt.datetime.now(timezone.utc).replace(tzinfo=None) - expire_utc_time
@@ -53,23 +53,23 @@ async def read_item(request: Request, id: str):
          try:
         #     # check if is a file
         #     # Path(os.environ['DOWNLOAD_DIR'], str(id.rsplit('.', 2)[0])
-             os.remove(Path(os.environ["DOWNLOAD_DIR"], str(id.rsplit(".", 2)[0])))
+             os.remove(Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])))
          except OSError as e:
              return templates.TemplateResponse(
-                 "error.html", {"request": request, "id": id, "error": e})
+                 "error.html", {"request": request, "id": download_token, "error": e})
          except KeyError:
              return templates.TemplateResponse(
-                 "expired.html", {"request": request, "id": id}
+                 "expired.html", {"request": request, "id": download_token}
              )
          except Exception as e:
              return templates.TemplateResponse(
                 "expired.html", {"request": request, 
-                                 "id": id, 
-                                 "debugger": Path(os.environ["DOWNLOAD_DIR"], str(id.rsplit(".", 2)[0])),
+                                 "id": download_token, 
+                                 "debugger": Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])),
                                  "error": e}
             )
     except BadSignature as e:
         print('BadSignature', e)
         return templates.TemplateResponse(
-            "error.html", {"request": request, "id": id}
+            "error.html", {"request": request, "id": download_token}
         )
