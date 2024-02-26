@@ -7,9 +7,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 // Add a marker to the map
-L.marker([51.5, -0.09]).addTo(map)
-    .bindPopup('A sample marker!')
-    .openPopup();
+// L.marker([51.5, -0.09]).addTo(map)
+//     .bindPopup('A sample marker!')
+//     .openPopup();
 
 var addedKeywords = [];
 
