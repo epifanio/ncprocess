@@ -46,11 +46,11 @@ def home(request: Request):
     return templates.TemplateResponse("home.html", context={"request": request})
 
 
-# @router.post("/tasks", status_code=201)
-# def run_task(payload = Body(...)):
-#     task_type = payload["type"]
-#     task = create_task.delay(int(task_type))
-#     return JSONResponse({"task_id": task.id})
+@router.post("/tasks", status_code=201)
+def run_task(payload = Body(...)):
+    task_type = payload["type"]
+    task = create_task.delay(int(task_type))
+    return JSONResponse({"task_id": task.id})
 
 
 # @router.post("/tasks_model", status_code=201)
@@ -64,10 +64,22 @@ def home(request: Request):
 @router.get("/celery_tasks/{task_id}")
 def get_celery_task_status(task_id):
     task_result = AsyncResult(task_id)
+    value = redis_client.get(task_id)
+    if value is not None:
+        print("Value retrieved from Redis:", value.decode('utf-8'))  # Decode bytes to string if needed
+        try:
+            task_data = json.loads(value)
+        except Exception as e:
+            print('json.loads(value) failed with: ', e)
+            task_data = value.decode('utf-8')
+    else:
+        print("Key not found in Redis.")
+        task_data = value
     result = {
         "task_id": str(task_id),
         "task_status": str(task_result.status),
-        "task_result": str(task_result.result)
+        "task_result": str(task_result.result),
+        "task_data": task_data,
     }
     return JSONResponse(result)
 
@@ -119,7 +131,10 @@ def kill_task(task_id):
 def run_task(payload : DatasetConfig):
     payload_dict = payload.dict()
     # task_duration = payload_dict["duration"]
-    task = process_data.delay(payload_dict)
+    
+    # TODO: add to pyload_dict the download_token and filename
+    
+    
     rv = base64.b64encode(uuid.uuid4().bytes).decode("utf-8")
     unique = re.sub(
         r"[\=\+\/]", lambda m: {"+": "-", "/": "_", "=": ""}[m.group(0)], rv
@@ -128,6 +143,9 @@ def run_task(payload : DatasetConfig):
     s = TimestampSigner("secret-key")
     download_token = s.sign(filename).decode()
     json_string = json.dumps({"download_token": download_token, "filename": filename})
+    payload_dict['download_token'] = download_token
+    payload_dict['filename'] = filename
+    task = process_data.delay(payload_dict)
     redis_client.set(task.id, json_string)
     return JSONResponse({"task_id": task.id, "download_token": download_token, "filename": filename, "task_status": task.status})
 
