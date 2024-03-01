@@ -8,3 +8,4 @@ ncprocess/models/__pycache__/
 ncprocess/redis_data/data/*
 *.pyc
 *.log
+scratchpad/
