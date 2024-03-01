@@ -25,7 +25,7 @@ sys.path.append('/usr/src/app')
 import redis
 import json
 from celery import Celery
-from models.datamodel import DatasetConfig 
+from models.datamodel import DatasetConfig, SearchObject
 # from redis_utility.redis_data import get_data, set_data 
 import xarray as xr
 import numpy as np
@@ -103,10 +103,10 @@ def process_data(DatasetConfig_dict):
     if dcf.output_format == 'csv':
         pass
     else:
-        filename = f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_data.nc"
+        # filename = f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_data.nc"
         # File name string
-        filename = f"{time_dim}_selected_data.nc"
-
+        # filename = f"{time_dim}_selected_data.nc"
+        filename = DatasetConfig_dict['filename']
         # Construct the path using pathlib
         file_path = Path(download_dir) / filename
         print("filename : ", filename)
@@ -133,4 +133,11 @@ def process_data(DatasetConfig_dict):
     print(str("completed processing"))
     # store the process resutls into redis and change the status of the task
     print(str(dcf))
+    return True
+
+
+
+@celery.task(name="csw_search")
+def csw_search(SearchObject_dict):
+    print(SearchObject_dict)
     return True

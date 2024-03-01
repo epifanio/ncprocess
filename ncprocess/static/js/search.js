@@ -1,10 +1,18 @@
 // Initialize the map
-var map = L.map('map').setView([51.505, -0.09], 13);
-
+// var map = L.map('map').setView([51.505, -0.09], 13);
+var map = L.map('map', {doubleClickZoom: false}).locate({setView: true, maxZoom: 16});
 // Add a tile layer to the map
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
+// Check if permission is already granted
+if ("geolocation" in navigator && !document.cookie.includes('location_permission=granted')) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+        // If permission is granted, set the cookie
+        document.cookie = "location_permission=granted";
+        // Use the position data if needed
+    });
+}
 
 // Add a marker to the map
 // L.marker([51.5, -0.09]).addTo(map)
