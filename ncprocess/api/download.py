@@ -50,24 +50,39 @@ async def read_item(request: Request, download_token: str):
             },
         )
     except SignatureExpired:
-         try:
-        #     # check if is a file
-        #     # Path(os.environ['DOWNLOAD_DIR'], str(id.rsplit('.', 2)[0])
-             os.remove(Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])))
-         except OSError as e:
-             return templates.TemplateResponse(
-                 "error.html", {"request": request, "id": download_token, "error": e})
-         except KeyError:
-             return templates.TemplateResponse(
-                 "expired.html", {"request": request, "id": download_token}
-             )
-         except Exception as e:
-             return templates.TemplateResponse(
+        try:
+            os.remove(Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])))
+            return templates.TemplateResponse(
                 "expired.html", {"request": request, 
                                  "id": download_token, 
                                  "debugger": Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])),
-                                 "error": e}
+                                 "error": "The download link has expired. Please try again."}
             )
+        except OSError as e:
+            return templates.TemplateResponse(
+                    "expired.html", {"request": request, 
+                                    "id": download_token, 
+                                    "debugger": Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])),
+                                    "error": e}
+                )
+        #  try:
+        # #     # check if is a file
+        # #     # Path(os.environ['DOWNLOAD_DIR'], str(id.rsplit('.', 2)[0])
+        #      os.remove(Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])))
+        #  except OSError as e:
+        #      return templates.TemplateResponse(
+        #          "error.html", {"request": request, "id": download_token, "error": e})
+        #  except KeyError:
+        #      return templates.TemplateResponse(
+        #          "expired.html", {"request": request, "id": download_token}
+        #      )
+        #  except Exception as e:
+        #      return templates.TemplateResponse(
+        #         "expired.html", {"request": request, 
+        #                          "id": download_token, 
+        #                          "debugger": Path(os.environ["DOWNLOAD_DIR"], str(download_token.rsplit(".", 2)[0])),
+        #                          "error": e}
+        #     )
     except BadSignature as e:
         print('BadSignature', e)
         return templates.TemplateResponse(

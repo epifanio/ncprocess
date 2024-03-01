@@ -62,7 +62,7 @@ def configure():
     
 def configure_routing():    
     app.mount("/static", StaticFiles(directory="static"), name="static")
-    app.mount("/download", StaticFiles(directory="download"), name="download")
+    app.mount("/download", StaticFiles(directory="data"), name="download")
     app.include_router(celery_task.router)
     app.include_router(sse.router)
     app.include_router(download.router)
