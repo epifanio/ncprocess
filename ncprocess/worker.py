@@ -76,6 +76,7 @@ def process_data(DatasetConfig_dict):
     dcf = DatasetConfig()
     dcf.url = DatasetConfig_dict['url']
     dcf.variables = DatasetConfig_dict['variables']
+    dcf.output_format = DatasetConfig_dict['output_format']
     
     print(str('start processing'))
     ds = xr.open_dataset(dcf.url, decode_times=dcf.decoded_time)
@@ -103,11 +104,27 @@ def process_data(DatasetConfig_dict):
     # Construct the path using pathlib
     file_path = Path(download_dir) / filename
     print("filename : ", filename)
-        
+    
+    print("output_format : ", dcf.output_format)    
     if dcf.is_resampled:
         pass
-    if dcf.output_format in ['csv', 'CSW']:
-        pass
+    
+    if dcf.output_format in ['csv', 'CSV']:
+        try:
+            # merged_dataset.to_netcdf(f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_data.nc")
+            print(f"attempting to save the dataset as CSV file... in {file_path}")
+            df = merged_dataset.to_dataframe()
+            df.to_csv(file_path)
+        except ValueError:
+            print(f"attempting to save the dataset as CSV file... as {file_path} failed")
+            # encoding = {i:{'_FillValue': np.nan} for i in ds[dcf.variables]}
+            # merged_dataset.to_netcdf(f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_datca.nc", encoding=encoding)
+            # df = merged_dataset.to_dataframe()
+            # df.to_csv(file_path)
+            # merged_dataset.to_csv(file_path, encoding=encoding)
+            filename = filename.replace(dcf.output_format, 'nc')
+            print(f"will try to download as netcdf {file_path} ")
+            pass
     else:
         # filename = f"{os.getenv('DOWNLOAD_DIR')}/{time_dim}_selected_data.nc"
         # File name string
