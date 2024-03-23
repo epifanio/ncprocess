@@ -23,7 +23,7 @@ from datetime import date, datetime, time, timedelta
 
 
 class DatasetConfig(BaseModel):
-    url: AnyUrl = Field('', description="The URL for the dataset")
+    url: str = Field('', description="The URL for the dataset")
     variables: List[str] = Field([], description="List of variables in the dataset")
     decoded_time: bool = Field(True, description="Flag indicating if time is decoded")
     time_range: List[datetime] = Field([], description="Time range for the dataset")
