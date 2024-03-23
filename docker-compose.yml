@@ -1,14 +1,18 @@
-version: '3.8'
+version: '3.9'
 
 services:
 
   api:
-    build: ./ncprocess
+    image: epinux/ncprocess:latest
+    build:
+      context: ./docker/ncprocess
     ports:
       - 8004:8000
-    command: uvicorn main:app --host 0.0.0.0 --reload
+    # command: uvicorn main:app --host 0.0.0.0 --reload
+    entrypoint: /usr/src/app/entrypoint.sh
     volumes:
       - ./ncprocess:/usr/src/app
+      - ./docker/ncprocess/api_entrypoint.sh:/usr/src/app/entrypoint.sh
       - download-data:/usr/src/app/data
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -20,10 +24,14 @@ services:
     hostname: api
 
   worker:
-    build: ./ncprocess
-    command: celery -A worker.celery worker --loglevel=info --logfile=logs/celery.log
+    image: epinux/ncprocess:latest
+    build:
+      context: ./docker/ncprocess
+    # command: celery -A worker.celery worker --loglevel=info --logfile=logs/celery.log
+    entrypoint: /usr/src/app/entrypoint.sh
     volumes:
       - ./ncprocess:/usr/src/app
+      - ./docker/ncprocess/celery_entrypoint.sh:/usr/src/app/entrypoint.sh
       - download-data:/usr/src/app/data
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -43,13 +51,17 @@ services:
       - ./ncprocess/redis_data/redis-stack.conf:/opt/redis-stack/etc/redis-stack.conf
 
   dashboard:
-    build: ./ncprocess
-    command: celery --broker=redis://redis:6379/0 flower --port=5555
+    image: epinux/ncprocess:latest
+    build: ./docker/ncprocess
+    entrypoint: /usr/src/app/entrypoint.sh
+    # command: celery --broker=redis://redis:6379/0 flower --port=5555
     ports:
       - 5557:5555
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./docker/ncprocess/flower_entrypoint.sh:/usr/src/app/entrypoint.sh
     depends_on:
       - api
       - redis

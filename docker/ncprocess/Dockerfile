@@ -1,6 +1,8 @@
 # pull official base image
-FROM python:3.11.2-slim-buster
+FROM python:3.12.2-slim-bookworm
 
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get -y dist-upgrade
 # set work directory
 WORKDIR /usr/src/app
 
@@ -14,4 +16,4 @@ COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
 # copy project
-COPY . .
+# COPY . .
